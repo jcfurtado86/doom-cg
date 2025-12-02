@@ -12,8 +12,11 @@ extern GLuint texTorre;
 extern GLuint texDegrau;
 extern GLuint texEsfera;
 extern GLuint texLava;
+extern GLuint texLosango;
 extern GLuint progEsfera;
 extern GLuint progLava;
+extern GLuint progLava;
+extern GLuint progLosango;
 
 static void desenhaLosango(float altura)
 {
@@ -22,7 +25,7 @@ static void desenhaLosango(float altura)
 
     float claro[3] = {0.3f, 1.0f, 0.3f};
     float escuro[3] = {0.0f, 0.6f, 0.0f};
-
+    glUseProgram(progLosango);
     glBegin(GL_TRIANGLES);
     // metade de cima
     glColor3fv(claro);
@@ -65,6 +68,7 @@ static void desenhaLosango(float altura)
     glVertex3f(0.0f, -h, 0.0f);
     glVertex3f(-s, 0.0f, 0.0f);
     glVertex3f(0.0f, 0.0f, -s);
+    
     glEnd();
 }
 
@@ -171,9 +175,45 @@ void desenhaTorresELosangos()
 
         // Losango verde girando em cima
         glPushMatrix();
-        glTranslatef(0.0f, alturaTorre + 1.2f, 0.0f);
+        glTranslatef(0.0f, 0.0f, 0.0f);
         glRotatef(anguloPiramide, 0.0f, 1.0f, 0.0f);
+
+        glUseProgram(progLosango);
+
+        glBindTexture(GL_TEXTURE_2D, texLosango);
+
+        float topoDegrausY = 1.0f;
+        float raioEsfera = 3.0f;
+
+        GLint locTimeLosango   = glGetUniformLocation(progLosango, "uTime");
+        GLint locStrLosango    = glGetUniformLocation(progLosango, "uStrength");
+        GLint locSpeedLosango  = glGetUniformLocation(progLosango, "uSpeed");
+        GLint locTexLosango    = glGetUniformLocation(progLosango, "uTexture");
+
+        glUniform1i(locTexLosango, 0);
+        glUniform1f(locTimeLosango, 0.0f);
+        glUniform1f(locStrLosango, 0.1f);
+        glUniform2f(locSpeedLosango, 3.0f, 1.7f);
+
+        glPushMatrix();
+        glTranslatef(0.0f, topoDegrausY + raioEsfera + 0.2f, 0.0f);
+        glRotatef(anguloEsfera, 1.0f, 1.0f, 0.0f);
+
+        glBindTexture(GL_TEXTURE_2D, texLosango);
+        glUniform1i(locTexLosango, 0);
+
+        // Ajuste da escala da textura na esfera
+        glMatrixMode(GL_TEXTURE);
+        glPushMatrix();
+        // valores < 1.0f deixam a textura MENOS repetida (mais esticada)
+        glScalef(1.5f, 1.5f, 1.0f);
+        glMatrixMode(GL_MODELVIEW);
+
         desenhaLosango(1.5f);
+
+        glUseProgram(0);
+
+        
         glPopMatrix();
 
         glPopMatrix();
@@ -456,7 +496,7 @@ void desenhaPiramideDegraus()
     GLint locTexBlood = glGetUniformLocation(progEsfera, "uTexture");
 
     glUniform1f(locTimeBlood, tempoEsfera);
-    glUniform1f(locStrBlood, 1.0f);
+    glUniform1f(locStrBlood, 0.1f);
     glUniform2f(locSpeedBlood, 3.0f, 1.7f);
 
     glPushMatrix();
