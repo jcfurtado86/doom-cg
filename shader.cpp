@@ -64,6 +64,12 @@ GLuint criaShader(const char *vertPath, const char *fragPath)
     glAttachShader(program, vs);
     glAttachShader(program, fs);
 
+    // bind common attribute locations for VBO-based rendering
+    // (if the shader doesn't declare them, binding is ignored)
+    glBindAttribLocation(program, 0, "aPos");
+    glBindAttribLocation(program, 1, "aTex");
+    glBindAttribLocation(program, 2, "aColor");
+
     glLinkProgram(program);
 
     GLint ok = 0;

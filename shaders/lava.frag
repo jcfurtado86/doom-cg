@@ -1,4 +1,4 @@
-#version 120
+#version 330 core
 
 uniform sampler2D uTexture;
 uniform float uTime;        // tempo em segundos
@@ -6,7 +6,8 @@ uniform float uStrength;    // força da distorção
 uniform vec2  uScroll;      // direção de rolagem da lava
 uniform float uHeat;        // intensidade do brilho
 
-varying vec2 vTexCoord;
+in vec2 vTexCoord;
+out vec4 fragColor;
 
 void main()
 {
@@ -21,7 +22,7 @@ void main()
     vec2 uvDistorted = uv + uStrength * vec2(distort * 0.02, distort * 0.03);
 
     // cor base da textura
-    vec4 baseColor = texture2D(uTexture, uvDistorted);
+    vec4 baseColor = texture(uTexture, uvDistorted);
 
     // mistura com cor de lava
     vec3 lavaTint = vec3(1.0, 0.4, 0.1);         // laranja quente
@@ -35,5 +36,5 @@ void main()
 
     color = clamp(color, 0.0, 1.0);
 
-    gl_FragColor = vec4(color, baseColor.a);
+    fragColor = vec4(color, baseColor.a);
 }

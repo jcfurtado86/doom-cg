@@ -1,11 +1,12 @@
-#version 120
+#version 330 core
 
 uniform sampler2D uTexture;
 uniform float uTime;   // tempo em segundos
 uniform float uStrength; // força da distorção
 uniform vec2 uSpeed;     // velocidade das ondas
 
-varying vec2 vTexCoord;
+in vec2 vTexCoord;
+out vec4 fragColor;
 
 void main()
 {
@@ -23,7 +24,7 @@ void main()
     vec2 uvDistorted = uv + uStrength * vec2(distort * 0.2, distort * 0.2);
 
     // amostra a textura
-    vec4 baseColor = texture2D(uTexture, uvDistorted);
+    vec4 baseColor = texture(uTexture, uvDistorted);
 
     // deixa um pouco mais vermelho e molhado
     vec3 waterTint = vec3(0.3, 0.0, 0.0);
@@ -33,9 +34,5 @@ void main()
     float highlight = 0.3 * abs(wave1 * wave2);
     finalColor += highlight * vec3(0.2, 0.3, 0.4);
 
-    gl_FragColor = vec4(finalColor, baseColor.a);
-    // debug: mostra as UV na tela
-// gl_FragColor = vec4(uv, 0.0, 1.0);
-// gl_FragColor = vec4( abs(sin(uTime)), 0.0, 0.0, 1.0 );
-// gl_FragColor = vec4(uvDistorted, 0.0, 1.0);
+    fragColor = vec4(finalColor, baseColor.a);
 }

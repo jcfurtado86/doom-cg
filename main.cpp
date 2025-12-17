@@ -6,6 +6,7 @@
 #include "input.h"
 #include "texture.h"
 #include "shader.h"
+#include "transform.h"
 
 float anguloPiramide = 0.0f;
 float anguloEsfera = 0.0f;
@@ -22,28 +23,30 @@ GLuint texEsfera;
 GLuint texLava;
 GLuint progEsfera;
 GLuint progLava;
+GLuint progModern;
 
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
+    // compute view matrix and push to matrix stack (modern pipeline)
     float radYaw = yaw * M_PI / 180.0f;
     float radPitch = pitch * M_PI / 180.0f;
-
     float dirX = cosf(radPitch) * sinf(radYaw);
     float dirY = sinf(radPitch);
     float dirZ = -cosf(radPitch) * cosf(radYaw);
-
-    gluLookAt(
-        camX, camY, camZ,
-        camX + dirX, camY + dirY, camZ + dirZ,
-        0.0f, 1.0f, 0.0f);
+    // build view matrix
+    gMatrixStack.s.clear();
+    gMatrixStack.s.push_back(Mat4::lookAt(camX, camY, camZ,
+                                        camX + dirX, camY + dirY, camZ + dirZ,
+                                        0.0f, 2.0f, 0.0f));
 
     desenhaChao();
+    // keep ground at origin; move the rest of the scene up by -2.5
+    gMatrixStack.push();
+    gMatrixStack.translate(0.0f, -2.5f, 0.0f);
     desenhaTorresELosangos();
     desenhaPiramideDegraus();
+    gMatrixStack.pop();
 
     glutSwapBuffers();
 
@@ -70,11 +73,9 @@ void reshape(int w, int h)
 
     glViewport(0, 0, w, h);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0f, a, 1.0f, 100.0f);
+    // compute projection matrix for modern pipeline
+    gProjection = Mat4::perspective(60.0f, a, 1.0f, 100.0f);
 
-    glMatrixMode(GL_MODELVIEW);
 
     // informa ao módulo de input onde é o centro da janela
     atualizaCentroJanela(w, h);
@@ -107,6 +108,7 @@ int main(int argc, char **argv)
     glutCreateWindow("Um dia vai ser DOOM");
 
     GLenum err = glewInit();
+    glewExperimental = GL_TRUE;
     if (err != GLEW_OK)
     {
         printf("Erro GLEW: %s\n", glewGetErrorString(err));
@@ -126,6 +128,11 @@ int main(int argc, char **argv)
     // cria o shader
     progEsfera = criaShader("shaders/blood.vert", "shaders/blood.frag");
     progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
+    progModern = criaShader("shaders/modern.vert", "shaders/modern.frag");
+
+    // initialize default projection and matrix stack
+    gProjection = Mat4::identity();
+    gMatrixStack = MatStack();
 
     glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 

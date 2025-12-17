@@ -37,6 +37,7 @@ GLuint carregaTextura(const char *arquivo)
         GL_UNSIGNED_BYTE,
         dados);
 
+    // gera mipmaps (usa gluBuild2DMipmaps para compatibilidade)
     gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, largura, altura, GL_RGB, GL_UNSIGNED_BYTE, dados);
 
     stbi_image_free(dados);
