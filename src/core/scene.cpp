@@ -1,5 +1,5 @@
 #include <GL/glut.h>
-#include "engine/scene.h"
+#include "core/scene.h"
 
 int janelaW = 1920;
 int janelaH = 1080;

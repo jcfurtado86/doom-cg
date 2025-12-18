@@ -1,9 +1,9 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <cmath>
-#include "game/drawlevel.h"
-#include "engine/scene.h"
-#include "game/levelmetrics.h"
+#include "graphics/drawlevel.h"
+#include "core/scene.h"
+#include "level/levelmetrics.h"
 #include <cstdio>
 
 extern GLuint texParede;
@@ -176,7 +176,7 @@ static void desenhaTileLava(float x, float z)
 
 static void desenhaTileSangue(float x, float z)
 {
-    glUseProgram(progSangue); // seu shader blood
+    glUseProgram(progSangue); 
 
     GLint locTime = glGetUniformLocation(progSangue, "uTime");
     GLint locStr = glGetUniformLocation(progSangue, "uStrength");
@@ -187,7 +187,7 @@ static void desenhaTileSangue(float x, float z)
     glUniform1f(locStr, 1.0f);
     glUniform2f(locSpd, 2.0f, 1.3f);
 
-    bindTexture0(texSangue); // textura base do “sangue”
+    bindTexture0(texSangue); 
     glUniform1i(locTex, 0);
 
     glColor3f(1, 1, 1);

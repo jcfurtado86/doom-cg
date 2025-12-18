@@ -2,9 +2,9 @@
 #include <GL/glut.h>
 #include <cstdio>
 
-#include "engine/app.h"
-#include "engine/scene.h"
-#include "game/game.h"
+#include "core/app.h"
+#include "core/scene.h"
+#include "core/game.h"
 
 int main(int argc, char** argv)
 {

@@ -1,11 +1,11 @@
-#include "game/game.h"
-#include "game/assets.h"
-#include "game/level.h"
-#include "game/config.h"
+#include "core/game.h"
+#include "utils/assets.h"
+#include "level/level.h"
+#include "core/config.h"
 
-#include "engine/scene.h"
-#include "engine/input.h"
-#include "game/drawlevel.h"
+#include "core/scene.h"
+#include "input/input.h"
+#include "graphics/drawlevel.h"
 
 #include <GL/glut.h>
 

@@ -1,4 +1,4 @@
-#include "game/level.h"
+#include "level/level.h"
 #include <cstdio>
 
 bool loadLevel(Level &lvl, const char *mapPath, float tileSize)

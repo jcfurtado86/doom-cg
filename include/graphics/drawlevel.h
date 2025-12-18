@@ -1,7 +1,7 @@
 #ifndef DRAWLEVEL_H
 #define DRAWLEVEL_H
 
-#include "game/maploader.h"
+#include "level/maploader.h"
 
 void drawLevel(const MapLoader& map);
 

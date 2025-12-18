@@ -1,6 +1,6 @@
 #pragma once
-#include "game/maploader.h"
-#include "game/levelmetrics.h"
+#include "level/maploader.h"
+#include "level/levelmetrics.h"
 
 struct Level
 {

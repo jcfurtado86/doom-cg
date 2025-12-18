@@ -1,7 +1,7 @@
 #ifndef LEVELMETRICS_H
 #define LEVELMETRICS_H
 
-#include "maploader.h"
+#include "level/maploader.h"
 
 struct LevelMetrics
 {

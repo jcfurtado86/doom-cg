@@ -1,8 +1,8 @@
-#include "engine/app.h"
-#include "engine/scene.h"
-#include "engine/fps.h"
-#include "game/game.h"
-#include "game/config.h"
+#include "core/app.h"
+#include "core/scene.h"
+#include "core/fps.h"
+#include "core/game.h"
+#include "core/config.h"
 
 #include <GL/glut.h>
 #include <GL/glu.h>

@@ -1,6 +1,6 @@
-#include "game/assets.h"
-#include "engine/texture.h"
-#include "engine/shader.h"
+#include "utils/assets.h"
+#include "graphics/texture.h"
+#include "graphics/shader.h"
 #include <cstdio>
 
 bool loadAssets(GameAssets &a)
