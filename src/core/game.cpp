@@ -8,7 +8,6 @@
 #include "graphics/drawlevel.h"
 #include "core/movement.h"
 
-
 #include <GL/glut.h>
 
 #include <cmath>
@@ -29,11 +28,41 @@ float tempo = 0.0f;
 static GameAssets gAssets;
 Level gLevel;
 
+static void setupSunLightOnce()
+{
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_NORMALIZE);
+    glShadeModel(GL_SMOOTH);
+    
+    // Ambiente global
+    GLfloat sceneAmbient[] = {0.45f, 0.45f, 0.50f, 1.0f};
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, sceneAmbient);
+
+    // Cor do sol
+    GLfloat sunDiffuse[] = {1.2f, 1.1f, 1.0f, 1.0f};
+    GLfloat sunSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f}; // sem brilho especular por enquanto
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, sunDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, sunSpecular);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+}
+
+static void setSunDirectionEachFrame()
+{
+    // direção DE ONDE a luz vem (mundo). w=0 => direcional
+    GLfloat sunDir[] = { 0.3f, 1.0f, 0.2f, 0.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, sunDir);
+}
+
 bool gameInit(const char *mapPath)
 {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
+
+    setupSunLightOnce();
 
     if (!loadAssets(gAssets))
         return false;
@@ -67,7 +96,7 @@ void gameUpdate(float dt)
 {
     // tempo global pros shaders (lava/sangue)
     tempo += dt;
-   
+
     atualizaMovimento();
 }
 
@@ -90,8 +119,9 @@ void gameRender()
         camX + dirX, camY + dirY, camZ + dirZ,
         0.0f, 1.0f, 0.0f);
 
+    setSunDirectionEachFrame();
+ 
     drawLevel(gLevel.map);
 
     glutSwapBuffers();
 }
-

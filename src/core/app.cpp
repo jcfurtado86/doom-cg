@@ -47,4 +47,7 @@ void appInit()
     glutDisplayFunc(displayCb);
     glutReshapeFunc(reshapeCb);
     glutTimerFunc(0, timerCb, 0);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 }

@@ -37,6 +37,8 @@ static void desenhaQuadTeto(float x, float z, float tile, float tilesUV)
     float half = tile * 0.5f;
 
     glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f); // <<< NORMAL DO TETO
+
     // note a ordem invertida (normal para baixo)
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(x - half, CEILING_H, z - half);
@@ -54,6 +56,8 @@ static void desenhaQuadChao(float x, float z, float tile, float tilesUV)
     float half = tile * 0.5f;
 
     glBegin(GL_QUADS);
+    glNormal3f(0.0f, 1.0f, 0.0f); // <<< NORMAL DO CHÃO
+
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(x - half, EPS_Y, z + half);
     glTexCoord2f(tilesUV, 0.0f);
@@ -91,64 +95,49 @@ static void desenhaParede(float x, float z, GLuint texParedeX)
     glColor3f(1, 1, 1);
     glBindTexture(GL_TEXTURE_2D, texParedeX);
 
-    // textura repetida ao longo da parede
     float tilesX = 1.0f;
     float tilesY = 2.0f;
 
     glBegin(GL_QUADS);
 
     // Frente (z+)
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, 0.0f, z + half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x + half, 0.0f, z + half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x + half, WALL_H, z + half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x - half, WALL_H, z + half);
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f);   glVertex3f(x - half, 0.0f,   z + half);
+    glTexCoord2f(tilesX, 0.0f); glVertex3f(x + half, 0.0f,   z + half);
+    glTexCoord2f(tilesX, tilesY); glVertex3f(x + half, WALL_H, z + half);
+    glTexCoord2f(0.0f, tilesY); glVertex3f(x - half, WALL_H, z + half);
 
     // Trás (z-)
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x + half, 0.0f, z - half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x - half, 0.0f, z - half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x - half, WALL_H, z - half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x + half, WALL_H, z - half);
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f);   glVertex3f(x + half, 0.0f,   z - half);
+    glTexCoord2f(tilesX, 0.0f); glVertex3f(x - half, 0.0f,   z - half);
+    glTexCoord2f(tilesX, tilesY); glVertex3f(x - half, WALL_H, z - half);
+    glTexCoord2f(0.0f, tilesY); glVertex3f(x + half, WALL_H, z - half);
 
     // Direita (x+)
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x + half, 0.0f, z + half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x + half, 0.0f, z - half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x + half, WALL_H, z - half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x + half, WALL_H, z + half);
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f);   glVertex3f(x + half, 0.0f,   z + half);
+    glTexCoord2f(tilesX, 0.0f); glVertex3f(x + half, 0.0f,   z - half);
+    glTexCoord2f(tilesX, tilesY); glVertex3f(x + half, WALL_H, z - half);
+    glTexCoord2f(0.0f, tilesY); glVertex3f(x + half, WALL_H, z + half);
 
     // Esquerda (x-)
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, 0.0f, z - half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x - half, 0.0f, z + half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x - half, WALL_H, z + half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x - half, WALL_H, z - half);
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f);   glVertex3f(x - half, 0.0f,   z - half);
+    glTexCoord2f(tilesX, 0.0f); glVertex3f(x - half, 0.0f,   z + half);
+    glTexCoord2f(tilesX, tilesY); glVertex3f(x - half, WALL_H, z + half);
+    glTexCoord2f(0.0f, tilesY); glVertex3f(x - half, WALL_H, z - half);
 
     // Topo
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, WALL_H, z + half);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(x + half, WALL_H, z + half);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(x + half, WALL_H, z - half);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(x - half, WALL_H, z - half);
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(x - half, WALL_H, z + half);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(x + half, WALL_H, z + half);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(x + half, WALL_H, z - half);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(x - half, WALL_H, z - half);
 
     glEnd();
 }
+
 
 static void desenhaTileLava(float x, float z)
 {
@@ -176,7 +165,7 @@ static void desenhaTileLava(float x, float z)
 
 static void desenhaTileSangue(float x, float z)
 {
-    glUseProgram(progSangue); 
+    glUseProgram(progSangue);
 
     GLint locTime = glGetUniformLocation(progSangue, "uTime");
     GLint locStr = glGetUniformLocation(progSangue, "uStrength");
@@ -187,7 +176,7 @@ static void desenhaTileSangue(float x, float z)
     glUniform1f(locStr, 1.0f);
     glUniform2f(locSpd, 2.0f, 1.3f);
 
-    bindTexture0(texSangue); 
+    bindTexture0(texSangue);
     glUniform1i(locTex, 0);
 
     glColor3f(1, 1, 1);
@@ -212,8 +201,8 @@ void drawLevel(const MapLoader &map)
             m.tileCenter(x, z, wx, wz); // centro do tile
 
             char c = data[z][x];
-            
-            //TIRAR A RESPOSNABILIDADE DO TILE DAQUI
+
+            // TIRAR A RESPOSNABILIDADE DO TILE DAQUI
             if (c == '0') // chão A
                 desenhaTileChao(wx, wz, texChao, false);
             else if (c == '3') // chão B

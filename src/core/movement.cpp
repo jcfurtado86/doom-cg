@@ -22,8 +22,7 @@ static bool isWallTile(int tx, int tz)
     return (c == '1' || c == '2');
 }
 
-static bool pointIntersectsTile(float px, float pz, int tx, int tz,
-                                const LevelMetrics &m, float radius)
+static bool pointIntersectsTile(float px, float pz, int tx, int tz, const LevelMetrics &m, float radius)
 {
     float wx, wz;
     m.tileCenter(tx, tz, wx, wz);
@@ -87,10 +86,26 @@ void atualizaMovimento()
     float dx = 0.0f;
     float dz = 0.0f;
 
-    if (keyW) { dx += dirX * passo; dz += dirZ * passo; }
-    if (keyS) { dx -= dirX * passo; dz -= dirZ * passo; }
-    if (keyA) { dx += strafeX * passo; dz += strafeZ * passo; }
-    if (keyD) { dx -= strafeX * passo; dz -= strafeZ * passo; }
+    if (keyW)
+    {
+        dx += dirX * passo;
+        dz += dirZ * passo;
+    }
+    if (keyS)
+    {
+        dx -= dirX * passo;
+        dz -= dirZ * passo;
+    }
+    if (keyA)
+    {
+        dx += strafeX * passo;
+        dz += strafeZ * passo;
+    }
+    if (keyD)
+    {
+        dx -= strafeX * passo;
+        dz -= strafeZ * passo;
+    }
 
     if (dx == 0.0f && dz == 0.0f)
         return;
@@ -137,8 +152,10 @@ void mouseMotion(int x, int y)
     yaw += dx * sens;
     pitch -= dy * sens;
 
-    if (pitch > 89.0f) pitch = 89.0f;
-    if (pitch < -89.0f) pitch = -89.0f;
+    if (pitch > 89.0f)
+        pitch = 89.0f;
+    if (pitch < -89.0f)
+        pitch = -89.0f;
 
     ignoreWarp = true;
     glutWarpPointer(centerX, centerY);
