@@ -165,74 +165,152 @@ static void desenhaTileChao(float x, float z, GLuint texChaoX, bool temTeto)
     }
 }
 
-static void desenhaParede(float x, float z, GLuint texParedeX)
+static bool isTileOutdoor(char c)
+{
+    return (c == '0' || c == 'L' || c == 'B' || c == '1');
+}
+
+static char getTileAt(const MapLoader &map, int gridX, int gridZ)
+{
+    const auto &data = map.data();
+    int H = map.getHeight();
+
+    if (gridZ < 0 || gridZ >= H)
+        return '1';
+    if (gridX < 0 || gridX >= (int)data[gridZ].size())
+        return '1';
+
+    return data[gridZ][gridX];
+}
+
+static void desenhaFaceParede(float x, float z, int face, float tilesX, float tilesY)
 {
     float half = TILE * 0.5f;
 
+    glBegin(GL_QUADS);
+
+    switch(face)
+    {
+        case 0:
+            glNormal3f(0.0f, 0.0f, 1.0f);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x - half, 0.0f, z + half);
+            glTexCoord2f(tilesX, 0.0f);
+            glVertex3f(x + half, 0.0f, z + half);
+            glTexCoord2f(tilesX, tilesY);
+            glVertex3f(x + half, WALL_H, z + half);
+            glTexCoord2f(0.0f, tilesY);
+            glVertex3f(x - half, WALL_H, z + half);
+            break;
+
+        case 1:
+            glNormal3f(0.0f, 0.0f, -1.0f);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x + half, 0.0f, z - half);
+            glTexCoord2f(tilesX, 0.0f);
+            glVertex3f(x - half, 0.0f, z - half);
+            glTexCoord2f(tilesX, tilesY);
+            glVertex3f(x - half, WALL_H, z - half);
+            glTexCoord2f(0.0f, tilesY);
+            glVertex3f(x + half, WALL_H, z - half);
+            break;
+
+        case 2:
+            glNormal3f(1.0f, 0.0f, 0.0f);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x + half, 0.0f, z + half);
+            glTexCoord2f(tilesX, 0.0f);
+            glVertex3f(x + half, 0.0f, z - half);
+            glTexCoord2f(tilesX, tilesY);
+            glVertex3f(x + half, WALL_H, z - half);
+            glTexCoord2f(0.0f, tilesY);
+            glVertex3f(x + half, WALL_H, z + half);
+            break;
+
+        case 3:
+            glNormal3f(-1.0f, 0.0f, 0.0f);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x - half, 0.0f, z - half);
+            glTexCoord2f(tilesX, 0.0f);
+            glVertex3f(x - half, 0.0f, z + half);
+            glTexCoord2f(tilesX, tilesY);
+            glVertex3f(x - half, WALL_H, z + half);
+            glTexCoord2f(0.0f, tilesY);
+            glVertex3f(x - half, WALL_H, z - half);
+            break;
+
+        case 4:
+            glNormal3f(0.0f, 1.0f, 0.0f);
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(x - half, WALL_H, z + half);
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex3f(x + half, WALL_H, z + half);
+            glTexCoord2f(1.0f, 1.0f);
+            glVertex3f(x + half, WALL_H, z - half);
+            glTexCoord2f(0.0f, 1.0f);
+            glVertex3f(x - half, WALL_H, z - half);
+            break;
+    }
+
+    glEnd();
+}
+
+static void desenhaParede(float x, float z, GLuint texParedeX)
+{
     glColor3f(1, 1, 1);
     glBindTexture(GL_TEXTURE_2D, texParedeX);
 
     float tilesX = 1.0f;
     float tilesY = 2.0f;
 
-    glBegin(GL_QUADS);
+    for (int face = 0; face < 5; face++)
+    {
+        desenhaFaceParede(x, z, face, tilesX, tilesY);
+    }
+}
 
-    // Frente (z+)
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, 0.0f, z + half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x + half, 0.0f, z + half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x + half, WALL_H, z + half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x - half, WALL_H, z + half);
+static void desenhaParedeComIluminacaoMista(const MapLoader &map, int gridX, int gridZ, float wx, float wz, GLuint texParedeX)
+{
+    glColor3f(1, 1, 1);
+    glBindTexture(GL_TEXTURE_2D, texParedeX);
 
-    // Trás (z-)
-    glNormal3f(0.0f, 0.0f, -1.0f);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x + half, 0.0f, z - half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x - half, 0.0f, z - half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x - half, WALL_H, z - half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x + half, WALL_H, z - half);
+    float tilesX = 1.0f;
+    float tilesY = 2.0f;
 
-    // Direita (x+)
-    glNormal3f(1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x + half, 0.0f, z + half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x + half, 0.0f, z - half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x + half, WALL_H, z - half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x + half, WALL_H, z + half);
+    int adjacentX[] = {0, 0, 1, -1, 0};
+    int adjacentZ[] = {1, -1, 0, 0, 0};
 
-    // Esquerda (x-)
-    glNormal3f(-1.0f, 0.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, 0.0f, z - half);
-    glTexCoord2f(tilesX, 0.0f);
-    glVertex3f(x - half, 0.0f, z + half);
-    glTexCoord2f(tilesX, tilesY);
-    glVertex3f(x - half, WALL_H, z + half);
-    glTexCoord2f(0.0f, tilesY);
-    glVertex3f(x - half, WALL_H, z - half);
+    for (int face = 0; face < 5; face++)
+    {
+        int adjX = gridX + adjacentX[face];
+        int adjZ = gridZ + adjacentZ[face];
+        char tileAdj = getTileAt(map, adjX, adjZ);
 
-    // Topo
-    glNormal3f(0.0f, 1.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(x - half, WALL_H, z + half);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(x + half, WALL_H, z + half);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(x + half, WALL_H, z - half);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(x - half, WALL_H, z - half);
+        bool useOutdoor = (face == 4) || isTileOutdoor(tileAdj);
 
-    glEnd();
+        if (useOutdoor)
+        {
+            glEnable(GL_LIGHT0);
+            glDisable(GL_LIGHT1);
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientOutdoor);
+        }
+        else
+        {
+            glDisable(GL_LIGHT0);
+            glEnable(GL_LIGHT1);
+            glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientIndoor);
+
+            float f = flickerFluorescente(tempo);
+            float intensity = 1.2f * f;
+            setIndoorLampAt(wx, wz, intensity);
+        }
+
+        desenhaFaceParede(wx, wz, face, tilesX, tilesY);
+    }
+
+    glDisable(GL_LIGHT1);
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientOutdoor);
+    glEnable(GL_LIGHT0);
 }
 
 static void desenhaTileLava(float x, float z)
@@ -307,13 +385,11 @@ void drawLevel(const MapLoader &map)
                 desenhaTileChao(wx, wz, texChaoInterno, true);
                 endIndoor();
             }
-            else if (c == '1') // parede A (outdoor)
+            else if (c == '1')
                 desenhaParede(wx, wz, texParede);
-            else if (c == '2') // parede B (indoor)
+            else if (c == '2')
             {
-                beginIndoor(wx, wz);
-                desenhaParede(wx, wz, texParedeInterna);
-                endIndoor();
+                desenhaParedeComIluminacaoMista(map, x, z, wx, wz, texParedeInterna);
             }
             else if (c == 'L')
             {
