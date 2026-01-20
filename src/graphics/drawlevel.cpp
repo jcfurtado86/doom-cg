@@ -351,13 +351,36 @@ void drawLevel(const MapLoader &map)
 
             char c = data[z][x];
 
-            // 1. Desenha chão embaixo de entidades (Sua Lógica)
-            if (c == 'J' || c == 'T' || c == 'M' || c == 'K' || c == 'G' || c == 'H' || c == 'A' || c == 'E' || c == 'F' || c == 'I') {
-                 desenhaTileChao(wx, wz, texChao, false);
+            // ta vendo se é entidade
+            bool isEntity = (c == 'J' || c == 'T' || c == 'M' || c == 'K' || 
+                             c == 'G' || c == 'H' || c == 'A' || c == 'E' || 
+                             c == 'F' || c == 'I');
+
+            if (isEntity) {
+                 //Olha os vizinhos para saber se estamos INDOOR ou OUTDOOR
+                 char viz1 = getTileAt(map, x+1, z);
+                 char viz2 = getTileAt(map, x-1, z);
+                 char viz3 = getTileAt(map, x, z+1);
+                 char viz4 = getTileAt(map, x, z-1);
+
+                 // Se algum vizinho for '3' (piso interno) ou '2' (parede interna),
+                 // a entidade está dentro.
+                 bool isIndoor = (viz1 == '3' || viz1 == '2' || 
+                                  viz2 == '3' || viz2 == '2' ||
+                                  viz3 == '3' || viz3 == '2' ||
+                                  viz4 == '3' || viz4 == '2');
+
+                 if (isIndoor) {
+                     beginIndoor(wx, wz);
+                     desenhaTileChao(wx, wz, texChaoInterno, true); // Com Teto
+                     endIndoor();
+                 } else {
+                     desenhaTileChao(wx, wz, texChao, false); // Outdoor comum
+                 }
             }
 
-            // 2. Desenha o Bloco
-            if (c == '0') // chão A (outdoor)
+            // 2. Desenha o Bloco (Cenário normal)
+            else if (c == '0') // chão A (outdoor)
                 desenhaTileChao(wx, wz, texChao, false);
 
             else if (c == '3') // chão B (indoor, tem teto)
@@ -368,12 +391,10 @@ void drawLevel(const MapLoader &map)
             }
             else if (c == '1') // parede A (outdoor)
             {
-                // Outdoor desenha o cubo todo, simplificado
                 desenhaParedeCuboCompleto(wx, wz, texParede);
             }
-            else if (c == '2') // parede B (indoor) - AQUI ENTRA A LÓGICA NOVA
+            else if (c == '2') // parede B (indoor)
             {
-                // Verifica os 4 vizinhos para saber qual face desenhar
                 char vizFrente  = getTileAt(map, x, z + 1);
                 char vizTras    = getTileAt(map, x, z - 1);
                 char vizDireita = getTileAt(map, x + 1, z);
