@@ -2,6 +2,8 @@
 
 #include "level/level.h"
 
+void audioPlayStepTap();
+
 extern Level gLevel;
 
 bool gameInit(const char* mapPath);
