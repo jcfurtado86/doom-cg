@@ -121,8 +121,11 @@ Cada **linha do arquivo** corresponde a uma linha do mapa, e **todas as linhas d
 1000090001
 1000000001
 1111111111
+```
 
-## 👾 Inimigos no mapa
+---
+
+### 👾 Inimigos no mapa
 
 Os inimigos são definidos diretamente no arquivo do mapa por letras.  
 Esses caracteres **não representam blocos sólidos**, servem apenas como ponto de spawn.
@@ -139,7 +142,7 @@ Após o carregamento do mapa, o caractere é convertido para piso e a entidade �
 
 ---
 
-## 🧰 Itens no mapa
+### 🧰 Itens no mapa
 
 Os itens também são definidos diretamente no mapa e funcionam como pontos de spawn.
 
@@ -155,12 +158,13 @@ Os itens também são definidos diretamente no mapa e funcionam como pontos de s
 
 ---
 
-## 🔍 Parâmetros globais do raycast (culling)
+### 🔍 Parâmetros globais do raycast (culling)
 
 ```cpp
 static float gCullHFovDeg      = 170.0f;
 static float gCullNearTiles    = 2.0f;
 static float gCullMaxDistTiles = 20.0f;
+```
 
 gCullHFovDeg
 Define o campo de visão horizontal (em graus) usado no culling. Objetos fora desse ângulo, no plano XZ, não são renderizados.
