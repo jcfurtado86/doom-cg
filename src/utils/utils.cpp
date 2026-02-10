@@ -22,3 +22,7 @@ bool getForwardXZ(float dx, float dz, float &outFx, float &outFz) {
     return normalize2(outFx, outFz);
 }
 
+float deg2rad(float d)
+{
+    return d * (3.1415926f / 180.0f);
+}

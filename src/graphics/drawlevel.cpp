@@ -17,9 +17,9 @@ extern GLuint texChaoInterno;
 extern GLuint texTeto;
 
 // Transformando em Arrays para suportar múltiplos inimigos ---
-extern GLuint texEnemies[5];       // Antes era texEnemy
-extern GLuint texEnemiesRage[5];   // Antes era texEnemyRage
-extern GLuint texEnemiesDamage[5]; // Antes era texEnemyDamage
+extern GLuint texEnemies[5];
+extern GLuint texEnemiesRage[5];
+extern GLuint texEnemiesDamage[5];
 // -----------------------------------------------------------------------------
 
 extern GLuint texHealth;
@@ -51,9 +51,46 @@ static float gCullHFovDeg = 170.0f;     // FOV horizontal do culling (cenário +
 static float gCullNearTiles = 2.0f;     // dentro disso não faz culling angular
 static float gCullMaxDistTiles = 20.0f; // 0 = sem limite; em tiles
 
-// =====================
-// FUNÇÕES AUXILIARES
-// =====================
+// Retorna TRUE se deve renderizar o objeto no plano XZ (distância + cone de FOV)
+// - Usa as configs globais gCull*
+// - Usa forward já normalizado (fwdx,fwdz) e flag hasFwd
+static inline bool isVisibleXZ(float objX, float objZ,
+                               float camX, float camZ,
+                               bool hasFwd, float fwdx, float fwdz)
+{
+    float vx = objX - camX;
+    float vz = objZ - camZ;
+    float distSq = vx * vx + vz * vz;
+
+    // 0) Distância máxima (se habilitada)
+    if (gCullMaxDistTiles > 0.0f)
+    {
+        float maxDist = gCullMaxDistTiles * TILE;
+        float maxDistSq = maxDist * maxDist;
+        if (distSq > maxDistSq)
+            return false;
+    }
+
+    // 1) Dentro do near: não faz culling angular
+    float nearDist = gCullNearTiles * TILE;
+    float nearDistSq = nearDist * nearDist;
+    if (distSq <= nearDistSq)
+        return true;
+
+    // 2) Sem forward válido: não faz culling angular
+    if (!hasFwd)
+        return true;
+
+    // 3) Cone por FOV horizontal
+    float cosHalf = std::cos(deg2rad(gCullHFovDeg * 0.5f));
+
+    float invDist = 1.0f / std::sqrt(distSq);
+    float nvx = vx * invDist;
+    float nvz = vz * invDist;
+
+    float dot = clampf(nvx * fwdx + nvz * fwdz, -1.0f, 1.0f);
+    return dot >= cosHalf;
+}
 
 static void bindTexture0(GLuint tex)
 {
@@ -69,19 +106,17 @@ static float hash01(float x)
 
 static float flickerFluorescente(float t)
 {
-    const float rate = 4.0f; // era 9.0
+    const float rate = 4.0f;
     float block = floorf(t * rate);
     float r = hash01(block);
 
-    if (r < 0.22f) // era 0.12
+    if (r < 0.22f)
     {
         float phase = t * rate - block;
 
-        // apagão mais longo
         if (phase > 0.35f && phase < 0.55f)
-            return 0.12f; // quase apaga
+            return 0.12f;
 
-        // as vezes um segundo tranco
         if (r < 0.06f && phase > 0.65f && phase < 0.78f)
             return 0.40f;
     }
@@ -91,7 +126,6 @@ static float flickerFluorescente(float t)
 
 static void setIndoorLampAt(float x, float z, float intensity)
 {
-    // posição da lâmpada (pontual)
     GLfloat pos[] = {x, CEILING_H - 0.05f, z, 1.0f};
     glLightfv(GL_LIGHT1, GL_POSITION, pos);
 
@@ -112,12 +146,9 @@ static void setIndoorLampAt(float x, float z, float intensity)
 
 static void beginIndoor(float wx, float wz)
 {
-    // sol NÃO entra
     glDisable(GL_LIGHT0);
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientIndoor);
 
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientIndoor); // esfria o ambiente
-
-    // lâmpada fria entra
     glEnable(GL_LIGHT1);
 
     float f = flickerFluorescente(tempo);
@@ -131,7 +162,6 @@ static void endIndoor()
     glDisable(GL_LIGHT1);
 
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientOutdoor);
-
     glEnable(GL_LIGHT0);
 }
 
@@ -140,9 +170,8 @@ static void desenhaQuadTeto(float x, float z, float tile, float tilesUV)
     float half = tile * 0.5f;
 
     glBegin(GL_QUADS);
-    glNormal3f(0.0f, -1.0f, 0.0f); // NORMAL DO TETO
+    glNormal3f(0.0f, -1.0f, 0.0f);
 
-    // note a ordem invertida
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(x - half, CEILING_H, z - half);
     glTexCoord2f(tilesUV, 0.0f);
@@ -159,7 +188,7 @@ static void desenhaQuadChao(float x, float z, float tile, float tilesUV)
     float half = tile * 0.5f;
 
     glBegin(GL_QUADS);
-    glNormal3f(0.0f, 1.0f, 0.0f); // NORMAL DO CHÃO
+    glNormal3f(0.0f, 1.0f, 0.0f);
 
     glTexCoord2f(0.0f, 0.0f);
     glVertex3f(x - half, EPS_Y, z + half);
@@ -174,16 +203,14 @@ static void desenhaQuadChao(float x, float z, float tile, float tilesUV)
 
 static void desenhaTileChao(float x, float z, GLuint texChaoX, bool temTeto)
 {
-    glUseProgram(0); // sem shader
+    glUseProgram(0);
     glColor3f(1, 1, 1);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texChaoX);
 
-    // chão
     desenhaQuadChao(x, z, TILE, 2.0f);
 
-    // teto
     if (temTeto)
     {
         glBindTexture(GL_TEXTURE_2D, texTeto);
@@ -266,7 +293,6 @@ static void desenhaParedeCuboCompleto(float x, float z, GLuint texParedeX)
     desenhaParedePorFace(x, z, texParedeX, 2);
     desenhaParedePorFace(x, z, texParedeX, 3);
 
-    // Topo
     float half = TILE * 0.5f;
     glBindTexture(GL_TEXTURE_2D, texParedeX);
     glBegin(GL_QUADS);
@@ -334,7 +360,6 @@ static char getTileAt(const MapLoader &map, int tx, int tz)
     const auto &data = map.data();
     const int H = map.getHeight();
 
-    // fora do mapa => considera outdoor ('0')
     if (tz < 0 || tz >= H)
         return '0';
     if (tx < 0 || tx >= (int)data[tz].size())
@@ -345,12 +370,10 @@ static char getTileAt(const MapLoader &map, int tx, int tz)
 
 static void drawFace(float wx, float wz, int face, char neighbor, GLuint texParedeInternaX)
 {
-    // Se o vizinho é vazio, lava ou sangue, a parede é visível
     bool outside = (neighbor == '0' || neighbor == 'L' || neighbor == 'B');
 
     if (outside)
     {
-        // OUTDOOR
         glDisable(GL_LIGHT1);
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientOutdoor);
         glEnable(GL_LIGHT0);
@@ -359,7 +382,6 @@ static void drawFace(float wx, float wz, int face, char neighbor, GLuint texPare
     }
     else if (neighbor != '2')
     {
-        // INDOOR
         beginIndoor(wx, wz);
         desenhaParedePorFace(wx, wz, texParedeInternaX, face);
         endIndoor();
@@ -369,18 +391,9 @@ static void drawFace(float wx, float wz, int face, char neighbor, GLuint texPare
 void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz)
 {
     const auto &data = map.data();
-    int H = map.getHeight();
+    const int H = map.getHeight();
 
     LevelMetrics m = LevelMetrics::fromMap(map, TILE);
-
-    // ---- Pré-cálculos do culling (fora do loop) ----
-    const float COS_HALF_HFOV = std::cos((gCullHFovDeg * 0.5f) * (3.1415926f / 180.0f));
-
-    const float NEAR_DIST = gCullNearTiles * TILE;
-    const float NEAR_DIST_SQ = NEAR_DIST * NEAR_DIST;
-
-    const float WORLD_MAX_DIST = gCullMaxDistTiles * TILE; // 0 => sem limite
-    const float WORLD_MAX_DIST_SQ = WORLD_MAX_DIST * WORLD_MAX_DIST;
 
     float fwdx, fwdz;
     bool hasFwd = getForwardXZ(dx, dz, fwdx, fwdz);
@@ -392,33 +405,12 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz)
             float wx, wz;
             m.tileCenter(x, z, wx, wz);
 
-            float vx = wx - px;
-            float vz = wz - pz;
-            float distSq = vx * vx + vz * vz;
-
-            // 0) Culling por distância máxima do mundo (se habilitado)
-            if (gCullMaxDistTiles > 0.0f)
-            {
-                if (distSq > WORLD_MAX_DIST_SQ)
-                    continue;
-            }
-
-            // 1) Culling angular robusto (plano XZ), só fora do near
-            if (distSq > NEAR_DIST_SQ && hasFwd)
-            {
-                float invDist = 1.0f / std::sqrt(distSq);
-                float nvx = vx * invDist;
-                float nvz = vz * invDist;
-
-                float dot = clampf(nvx * fwdx + nvz * fwdz, -1.0f, 1.0f);
-
-                if (dot < COS_HALF_HFOV)
-                    continue;
-            }
+            // CULLING ÚNICO (cenário)
+            if (!isVisibleXZ(wx, wz, px, pz, hasFwd, fwdx, fwdz))
+                continue;
 
             char c = data[z][x];
 
-            // entidades no mapa (spawn markers)
             bool isEntity = (c == 'J' || c == 'T' || c == 'M' || c == 'K' ||
                              c == 'G' || c == 'H' || c == 'A' || c == 'E' ||
                              c == 'F' || c == 'I');
@@ -446,21 +438,21 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz)
                     desenhaTileChao(wx, wz, texChao, false);
                 }
             }
-            else if (c == '0') // chão outdoor
+            else if (c == '0')
             {
                 desenhaTileChao(wx, wz, texChao, false);
             }
-            else if (c == '3') // chão indoor
+            else if (c == '3')
             {
                 beginIndoor(wx, wz);
                 desenhaTileChao(wx, wz, texChaoInterno, true);
                 endIndoor();
             }
-            else if (c == '1') // parede outdoor
+            else if (c == '1')
             {
                 desenhaParedeCuboCompleto(wx, wz, texParede);
             }
-            else if (c == '2') // parede indoor (face culling)
+            else if (c == '2')
             {
                 char vizFrente = getTileAt(map, x, z + 1);
                 char vizTras = getTileAt(map, x, z - 1);
@@ -526,7 +518,8 @@ static void drawSprite(float x, float z, float w, float h, GLuint tex, float cam
 }
 
 // Desenha inimigos e itens
-void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items, float camX, float camZ, float dx, float dz)
+void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items,
+                  float camX, float camZ, float dx, float dz)
 {
     glDisable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
@@ -538,37 +531,14 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
     float fwdx, fwdz;
     bool hasFwd = getForwardXZ(dx, dz, fwdx, fwdz);
 
-    const float ENT_NEAR_DIST = gCullNearTiles * TILE;
-    const float ENT_NEAR_DIST_SQ = ENT_NEAR_DIST * ENT_NEAR_DIST;
-
-    const float ENT_COS_HALF = std::cos((gCullHFovDeg * 0.5f) * (3.1415926f / 180.0f));
-
-    const float RAIO_VISAO = gCullMaxDistTiles * TILE;
-    ;
-
     // --- ITENS ---
     for (const auto &item : items)
     {
         if (!item.active)
             continue;
 
-        float vx = item.x - camX;
-        float vz = item.z - camZ;
-        float distSq = vx * vx + vz * vz;
-
-        if (distSq > (RAIO_VISAO * RAIO_VISAO))
+        if (!isVisibleXZ(item.x, item.z, camX, camZ, hasFwd, fwdx, fwdz))
             continue;
-
-        if (distSq > ENT_NEAR_DIST_SQ && hasFwd)
-        {
-            float invDist = 1.0f / std::sqrt(distSq);
-            float nvx = vx * invDist;
-            float nvz = vz * invDist;
-
-            float dot = clampf(nvx * fwdx + nvz * fwdz, -1.0f, 1.0f);
-            if (dot < ENT_COS_HALF)
-                continue;
-        }
 
         if (item.type == ITEM_HEALTH)
             drawSprite(item.x, item.z, 0.7f, 0.7f, texHealth, camX, camZ);
@@ -582,28 +552,11 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         if (en.state == STATE_DEAD)
             continue;
 
-        float vx = en.x - camX;
-        float vz = en.z - camZ;
-        float distSq = vx * vx + vz * vz;
-
-        if (gCullMaxDistTiles > 0.0f)
-        {
-            if (distSq > (RAIO_VISAO * RAIO_VISAO))
-                continue;
-        }
-
-        if (distSq > ENT_NEAR_DIST_SQ && hasFwd)
-        {
-            float invDist = 1.0f / std::sqrt(distSq);
-            float nvx = vx * invDist;
-            float nvz = vz * invDist;
-
-            float dot = clampf(nvx * fwdx + nvz * fwdz, -1.0f, 1.0f);
-            if (dot < ENT_COS_HALF)
-                continue;
-        }
+        if (!isVisibleXZ(en.x, en.z, camX, camZ, hasFwd, fwdx, fwdz))
+            continue;
 
         int t = (en.type < 0 || en.type > 4) ? 0 : en.type;
+
         GLuint currentTex;
         if (en.hurtTimer > 0.0f)
             currentTex = texEnemiesDamage[t];
