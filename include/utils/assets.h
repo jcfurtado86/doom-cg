@@ -23,6 +23,8 @@ struct GameAssets
     GLuint texGunReload1 = 0;
     GLuint texGunReload2 = 0;
     GLuint texDamage = 0;
+    GLuint texGunHUD = 0;
+    GLuint texHudFundo = 0;
 
     GLuint texEnemies[5]       = {0, 0, 0, 0, 0};
     GLuint texEnemiesRage[5]   = {0, 0, 0, 0, 0};
@@ -36,6 +38,3 @@ struct GameAssets
 };
 
 bool loadAssets(GameAssets &a);
-static inline float clampf(float v, float a, float b);
-static inline bool normalize2(float &x, float &z);
-static inline bool getForwardXZ(float dx, float dz, float &outFx, float &outFz);

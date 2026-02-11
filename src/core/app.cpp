@@ -27,7 +27,7 @@ static void reshapeCb(int w, int h)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(70.0f, a, 0.1f, 2000.0f);    
+    gluPerspective(70.0f, a, 0.1f, 2000.0f);
     glMatrixMode(GL_MODELVIEW);
 
     atualizaCentroJanela(w, h);
@@ -49,7 +49,7 @@ void appInit()
     glutReshapeFunc(reshapeCb);
     glutTimerFunc(0, timerCb, 0);
 
-glutMouseFunc(mouseClick); // <--- ADICIONE ISSO
+    glutMouseFunc(mouseClick); // <--- ADICIONE ISSO
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);

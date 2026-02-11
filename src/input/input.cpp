@@ -9,17 +9,52 @@
 
 void keyboard(unsigned char key, int, int)
 {
-    switch (key)
-    {
-    case 'w': case 'W': keyW = true; break;
-    case 's': case 'S': keyS = true; break;
-    case 'a': case 'A': keyA = true; break;
-    case 'd': case 'D': keyD = true; break;
-    case 'r': case 'R': playerTryReload(); break;
+    // ESC sai do jogo imediatamente em qualquer tela
+    if (key == 27) std::exit(0);
 
-    case 27: // ESC
-        std::exit(0);
-        break;
+    // --- MENU INICIAL ---
+    if (currentState == MENU_INICIAL) {
+        if (key == 13) { // ENTER
+            currentState = JOGANDO;
+        }
+        return;
+    }
+
+    // --- GAME OVER ---
+    if (currentState == GAME_OVER) {
+        if (key == 13) { // ENTER reinicia
+            gameReset();
+            currentState = JOGANDO;
+        }
+        return;
+    }
+
+    // --- PAUSE ---
+    if (currentState == PAUSADO) {
+        if (key == 'p' || key == 'P') {
+            currentState = JOGANDO; // Despausa
+        }
+        return;
+    }
+
+    // --- JOGANDO ---
+    if (currentState == JOGANDO) {
+        if (key == 'p' || key == 'P') {
+            currentState = PAUSADO;
+            // Para o movimento ao pausar
+            keyW = keyA = keyS = keyD = false; 
+            return;
+        }
+
+        // Controles de Jogo (WASD + R)
+        switch (key)
+        {
+        case 'w': case 'W': keyW = true; break;
+        case 's': case 'S': keyS = true; break;
+        case 'a': case 'A': keyA = true; break;
+        case 'd': case 'D': keyD = true; break;
+        case 'r': case 'R': playerTryReload(); break;
+        }
     }
 }
 
